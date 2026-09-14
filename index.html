@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge — каталог игр</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html">Forge</a>
+    <nav class="topnav">
+      <a href="index.html" class="active">Каталог</a>
+      <a href="library.html">Библиотека</a>
+    </nav>
+    <div class="search-wrap">
+      <input id="search-input" type="text" placeholder="Найти игру...">
+    </div>
+    <div class="topbar-actions">
+      <a href="cart.html" class="icon-btn" id="cart-btn">Вишлист</a>
+      <a href="profile.html" class="icon-btn">Профиль</a>
+      <a href="admin.html" class="icon-btn" id="admin-link" style="display:none">Админка</a>
+      <a href="login.html" class="icon-btn ghost" id="login-btn">Войти</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero" id="hero">
+</section>
+
+<section class="row-section">
+  <h2 class="row-title">Популярное</h2>
+  <div class="row-slider" id="popular-row"></div>
+</section>
+
+<section class="row-section">
+  <h2 class="row-title">Скидки и распродажи</h2>
+  <div class="row-slider" id="deals-row"></div>
+</section>
+
+<section class="row-section">
+  <h2 class="row-title">Популярные категории</h2>
+  <div class="category-tiles" id="category-tiles"></div>
+</section>
+
+<main class="catalog" id="catalog-anchor">
+  <div class="catalog-head">
+    <h1>Все игры</h1>
+    <div class="controls">
+      <div class="filter-genres" id="filter-genres">
+        <button data-genre="all" class="chip active">Все</button>
+      </div>
+      <select id="sort-select">
+        <option value="relevance">По релевантности</option>
+        <option value="discount-desc">Сначала скидки</option>
+        <option value="price-asc">Сначала дешёвые</option>
+        <option value="price-desc">Сначала дорогие</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid" id="games-grid"></div>
+
+  <div class="load-more-wrap">
+    <button id="load-more" class="btn-outline">Показать ещё</button>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <span>LOL</span>
+</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

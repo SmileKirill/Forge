@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge — вишлист</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html">Forge</a>
+    <nav class="topnav">
+      <a href="index.html">Каталог</a>
+      <a href="library.html">Библиотека</a>
+      <a href="cart.html" class="active">Вишлист</a>
+    </nav>
+    <div class="topbar-actions">
+      <a href="profile.html" class="icon-btn">Профиль</a>
+      <a href="admin.html" class="icon-btn" id="admin-link" style="display:none">Админка</a>
+      <a href="login.html" class="icon-btn ghost" id="login-btn">Войти</a>
+    </div>
+  </div>
+</header>
+
+<main class="catalog">
+  <h1>Вишлист</h1>
+  <p id="wishlist-empty" style="color:var(--text-muted);margin-top:8px;display:none">
+    Пока пусто. Жми на ♡ на карточке любой игры в каталоге, чтобы добавить сюда.
+  </p>
+  <p id="wishlist-login" style="color:var(--text-muted);margin-top:8px;display:none">
+    Войди в аккаунт, чтобы видеть свой вишлист.
+  </p>
+  <div class="grid" id="wishlist-grid" style="margin-top:24px"></div>
+</main>
+
+<script type="module">
+  import { db, auth } from "./js/firebase-config.js";
+  import { watchAuthUI } from "./js/auth.js";
+  import { cardTemplate } from "./js/game-card.js";
+  import { attachWishlistHandlers } from "./js/wishlist.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const grid = document.getElementById("wishlist-grid");
+  const emptyMsg = document.getElementById("wishlist-empty");
+  const loginMsg = document.getElementById("wishlist-login");
+  let wishlistSlugs = new Set();
+  const wishlistRef = { get current() { return wishlistSlugs; } };
+
+  async function render(user) {
+    grid.innerHTML = "";
+    emptyMsg.style.display = "none";
+    loginMsg.style.display = "none";
+
+    if (!user) { loginMsg.style.display = "block"; return; }
+
+    const userSnap = await getDoc(doc(db, "users", user.uid));
+    const data = userSnap.exists() ? userSnap.data() : {};
+    const ids = data.wishlist || [];
+    wishlistSlugs = new Set(ids);
+    const ownedSlugs = new Set(data.library || []);
+
+    if (ids.length === 0) { emptyMsg.style.display = "block"; return; }
+
+    const games = (await Promise.all(ids.map(id => getDoc(doc(db, "games", id)))))
+      .filter(s => s.exists())
+      .map(s => ({ id: s.id, ...s.data() }));
+
+    grid.innerHTML = games.map(g => cardTemplate(g, {
+      owned: ownedSlugs.has(g.id),
+      wishlisted: wishlistSlugs.has(g.id)
+    })).join("");
+
+    // 1. после удаления из вишлиста карточка на этой странице больше не нужна — перерисуем список
+    grid.querySelectorAll(".wishlist-btn").forEach(btn => btn.addEventListener("click", () => {
+      setTimeout(() => { if (!wishlistSlugs.has(btn.dataset.id)) btn.closest(".card").remove(); }, 300);
+    }));
+  }
+
+  attachWishlistHandlers(wishlistRef);
+  onAuthStateChanged(auth, render);
+  watchAuthUI();
+</script>
+</body>
+</html>

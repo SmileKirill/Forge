@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge — библиотека</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html">Forge</a>
+    <nav class="topnav">
+      <a href="index.html">Каталог</a>
+      <a href="library.html" class="active">Библиотека</a>
+      <a href="cart.html">Вишлист</a>
+    </nav>
+    <div class="topbar-actions">
+      <a href="profile.html" class="icon-btn">Профиль</a>
+      <a href="admin.html" class="icon-btn" id="admin-link" style="display:none">Админка</a>
+      <a href="login.html" class="icon-btn ghost" id="login-btn">Войти</a>
+    </div>
+  </div>
+</header>
+
+<main class="catalog">
+  <h1>Библиотека</h1>
+  <p style="color:var(--text-muted);margin-top:8px">Игры, которые определились как купленные через привязку Steam-аккаунта.</p>
+  <p id="library-empty" style="color:var(--text-muted);margin-top:8px;display:none">
+    Пока пусто. Привяжи Steam-аккаунт в <a href="profile.html">профиле</a> — совпадения с каталогом появятся тут.
+  </p>
+  <p id="library-login" style="color:var(--text-muted);margin-top:8px;display:none">
+    Войди в аккаунт, чтобы видеть свою библиотеку.
+  </p>
+  <div class="grid" id="library-grid" style="margin-top:24px"></div>
+</main>
+
+<script type="module">
+  import { db, auth } from "./js/firebase-config.js";
+  import { watchAuthUI } from "./js/auth.js";
+  import { cardTemplate } from "./js/game-card.js";
+  import { attachWishlistHandlers } from "./js/wishlist.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const grid = document.getElementById("library-grid");
+  const emptyMsg = document.getElementById("library-empty");
+  const loginMsg = document.getElementById("library-login");
+  const wishlistRef = { current: new Set() };
+
+  async function render(user) {
+    grid.innerHTML = "";
+    emptyMsg.style.display = "none";
+    loginMsg.style.display = "none";
+
+    if (!user) { loginMsg.style.display = "block"; return; }
+
+    const userSnap = await getDoc(doc(db, "users", user.uid));
+    const data = userSnap.exists() ? userSnap.data() : {};
+    const ids = data.library || [];
+    wishlistRef.current = new Set(data.wishlist || []);
+
+    if (ids.length === 0) { emptyMsg.style.display = "block"; return; }
+
+    const games = (await Promise.all(ids.map(id => getDoc(doc(db, "games", id)))))
+      .filter(s => s.exists())
+      .map(s => ({ id: s.id, ...s.data() }));
+
+    grid.innerHTML = games.map(g => cardTemplate(g, {
+      owned: true,
+      wishlisted: wishlistRef.current.has(g.id)
+    })).join("");
+  }
+
+  attachWishlistHandlers(wishlistRef);
+  onAuthStateChanged(auth, render);
+  watchAuthUI();
+</script>
+</body>
+</html>

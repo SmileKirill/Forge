@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge — вход</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+.auth-wrap{max-width:380px;margin:64px auto;padding:0 24px}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:28px}
+.auth-tabs{display:flex;gap:8px;margin-bottom:20px}
+.auth-tab{flex:1;padding:9px;border-radius:var(--radius);background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);cursor:pointer;font-size:14px}
+.auth-tab.active{color:var(--text);border-color:var(--accent)}
+.auth-field{margin-bottom:14px}
+.auth-field label{display:block;font-size:13px;color:var(--text-muted);margin-bottom:6px}
+.auth-field input{width:100%;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px}
+.auth-field input:focus{outline:none;border-color:var(--accent)}
+.auth-submit{width:100%;padding:11px;border-radius:var(--radius);background:var(--accent);border:none;color:#0e0f14;font-weight:600;cursor:pointer;font-size:14px;margin-top:6px}
+.auth-error{color:var(--accent-2);font-size:13px;margin-top:12px;display:none}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html">Forge</a>
+    <nav class="topnav">
+      <a href="index.html">Каталог</a>
+    </nav>
+  </div>
+</header>
+
+<div class="auth-wrap">
+  <div class="auth-tabs">
+    <button class="auth-tab active" data-mode="login">Вход</button>
+    <button class="auth-tab" data-mode="register">Регистрация</button>
+  </div>
+
+  <div class="auth-card">
+    <form id="login-form">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="login-email" required>
+      </div>
+      <div class="auth-field">
+        <label>Пароль</label>
+        <input type="password" id="login-password" required>
+      </div>
+      <button class="auth-submit" type="submit">Войти</button>
+    </form>
+
+    <form id="register-form" style="display:none">
+      <div class="auth-field">
+        <label>Имя</label>
+        <input type="text" id="register-name" required>
+      </div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="register-email" required>
+      </div>
+      <div class="auth-field">
+        <label>Пароль</label>
+        <input type="password" id="register-password" required minlength="6">
+      </div>
+      <button class="auth-submit" type="submit">Создать аккаунт</button>
+    </form>
+
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { login, register, watchAuthUI } from "./js/auth.js";
+
+  const tabs = document.querySelectorAll(".auth-tab");
+  const loginForm = document.getElementById("login-form");
+  const registerForm = document.getElementById("register-form");
+  const errorBox = document.getElementById("auth-error");
+
+  tabs.forEach(tab => tab.addEventListener("click", () => {
+    tabs.forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    const isLogin = tab.dataset.mode === "login";
+    loginForm.style.display = isLogin ? "block" : "none";
+    registerForm.style.display = isLogin ? "none" : "block";
+    errorBox.style.display = "none";
+  }));
+
+  function showError(e) {
+    errorBox.textContent = e.code === "auth/invalid-credential" ? "Неверный email или пароль"
+      : e.code === "auth/email-already-in-use" ? "Такой email уже зарегистрирован"
+      : e.code === "auth/weak-password" ? "Пароль слишком короткий (минимум 6 символов)"
+      : "Что-то пошло не так, попробуй ещё раз";
+    errorBox.style.display = "block";
+  }
+
+  loginForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    try {
+      await login(document.getElementById("login-email").value, document.getElementById("login-password").value);
+      location.href = "index.html";
+    } catch (err) { showError(err); }
+  });
+
+  registerForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    try {
+      await register(
+        document.getElementById("register-email").value,
+        document.getElementById("register-password").value,
+        document.getElementById("register-name").value
+      );
+      location.href = "index.html";
+    } catch (err) { showError(err); }
+  });
+
+  watchAuthUI();
+</script>
+</body>
+</html>

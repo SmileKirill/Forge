@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge — игра</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html">Forge</a>
+    <nav class="topnav">
+      <a href="index.html">Каталог</a>
+      <a href="library.html">Библиотека</a>
+      <a href="cart.html">Вишлист</a>
+    </nav>
+    <div class="topbar-actions">
+      <a href="profile.html" class="icon-btn">Профиль</a>
+      <a href="admin.html" class="icon-btn" id="admin-link" style="display:none">Админка</a>
+      <a href="login.html" class="icon-btn ghost" id="login-btn">Войти</a>
+    </div>
+  </div>
+</header>
+
+<main id="game-root" class="game-page">
+  <p style="max-width:1280px;margin:48px auto;padding:0 24px;color:var(--text-muted)">Загрузка...</p>
+</main>
+
+<script type="module" src="js/game.js"></script>
+</body>
+</html>
